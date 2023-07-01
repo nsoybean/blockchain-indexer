@@ -8,4 +8,16 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class BlockIndexer {
   constructor(private readonly blockchainClient: JsonBlockchainClient) {}
+
+  async getBlockCount(): Promise<any> {
+    return this.blockchainClient.getBlockCount();
+  }
+
+  async getBlocksAtHeight(height: string): Promise<any> {
+    return this.blockchainClient.getBlocksAtHeight(Number(height));
+  }
+
+  async getBlockByHash(hash: string): Promise<any> {
+    return this.blockchainClient.getBlockByHash(hash);
+  }
 }

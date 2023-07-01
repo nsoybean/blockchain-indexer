@@ -34,7 +34,7 @@ export class JsonBlockchainClient
   }
 
   async getBlockByHash(hash: string): Promise<Block | undefined> {
-    return this.delay(() => {
+    return await this.delay(() => {
       const blocks = this.blocks.filter((block) => hash === block.hash);
       return blocks[0];
     });

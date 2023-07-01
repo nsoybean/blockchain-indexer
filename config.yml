@@ -1,0 +1,10 @@
+http:
+  host: 'localhost'
+  port: 3000
+
+db:
+  postgres:
+    url: 'localhost'
+    port: 5432
+    database: 'yaml-db'
+    seed_data: true # setting to 'true' will seed database with block data defined in 'test/resources/200.json'

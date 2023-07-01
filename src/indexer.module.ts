@@ -6,9 +6,25 @@ import {
   JsonBlockchainClient,
 } from './providers/blockchain/JsonBlockchainClient';
 import { BlockIndexer } from './block.indexer';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [],
+  imports: [
+    ConfigModule.forRoot(),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      // host: 'pg',
+      host: 'localhost',
+      port: 5432,
+      username: process.env.POSTGRES_USERNAME,
+      password: process.env.POSTGRES_PASSWORD,
+      database: process.env.POSTGRES_DATABASE,
+      entities: [],
+      synchronize: true, // TypeORM will automatically generate database tables based on the entities
+      autoLoadEntities: true,
+    }),
+  ],
   controllers: [IndexerController],
   providers: [
     BlockIndexer,

@@ -4,7 +4,12 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
+  OneToOne,
+  JoinColumn,
+  Unique,
 } from 'typeorm';
+import { BlockTransaction } from '../blockTransaction/blockTransaction.entity';
 
 @Entity()
 export class AddressTransaction {

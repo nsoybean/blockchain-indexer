@@ -11,7 +11,7 @@ export class Block {
   @PrimaryGeneratedColumn('uuid')
   id: number;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: false })
   hash: string;
 
   @Column({ nullable: true })

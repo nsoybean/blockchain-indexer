@@ -15,7 +15,7 @@ import {
 import {
   AddressTransaction,
   IAddressTransaction,
-} from './AddressTransaction/AddressTransaction.entity';
+} from './addressTransaction/addressTransaction.entity';
 import { ConfigService } from '@nestjs/config';
 
 /**
@@ -100,6 +100,14 @@ export class BlockIndexer implements OnApplicationBootstrap {
     return this.findTransactionsByBlockHeight(Number(height));
   }
 
+  async getIndexerTransactionsByAddress(address: string): Promise<any> {
+    if (!address) {
+      throw new BadRequestException();
+    }
+
+    return this.findTransactionsByAddress(address);
+  }
+
   // main indexing method
   // loads block data in memory and save to database
   async onApplicationBootstrap(): Promise<void> {
@@ -174,14 +182,20 @@ export class BlockIndexer implements OnApplicationBootstrap {
           if (txn.vout && txn.vout.length > 0)
             for (const tVout of txn.vout) {
               if (tVout.scriptPubKey.addresses) {
-                const address = tVout.scriptPubKey.addresses;
-                const newAddressTxnEntity: IAddressTransaction = {
-                  txn_hash: txnHash,
-                  address: address[0],
-                };
-                this.addressTxnRepository.upsert(newAddressTxnEntity, [
-                  'txn_hash',
-                ]);
+                for (const tAddress of tVout.scriptPubKey.addresses) {
+                  const newAddressTxnEntity: IAddressTransaction = {
+                    txn_hash: txnHash,
+                    address: tAddress,
+                  };
+
+                  this.addressTxnRepository
+                    .createQueryBuilder()
+                    .insert()
+                    .into(AddressTransaction)
+                    .values(newAddressTxnEntity)
+                    .orIgnore(true)
+                    .execute();
+                }
               }
             }
         }
@@ -274,5 +288,20 @@ export class BlockIndexer implements OnApplicationBootstrap {
     } else {
       throw new NotFoundException(`txn not found in block at height ${height}`);
     }
+  }
+
+  async findTransactionsByAddress(address: string): Promise<any> {
+    // const queryResults = await this.addressTxnRepository
+    //   .createQueryBuilder('t')
+    //   .select(['bTxn.data'])
+    //   .leftJoin('t.block_transactions', 'bTxn')
+    //   .where('t.address = :tAddress', { tAddress: address })
+    //   .getMany();
+
+    // console.log(
+    //   '🚀 ~ file: block.indexer.ts:296 ~ BlockIndexer ~ findTransactionsByAddress ~ queryResults:',
+    //   queryResults[0],
+    // );
+    return true;
   }
 }

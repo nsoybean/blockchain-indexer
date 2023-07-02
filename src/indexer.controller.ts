@@ -46,4 +46,11 @@ export class IndexerController {
   ): Promise<any> {
     return this.blockIndexer.getIndexerTransactionsByBlockHeight(height);
   }
+
+  @Get('/api/addresses/:address/transactions')
+  async getIndexerTransactionsByAddress(
+    @Param('address') address: string,
+  ): Promise<any> {
+    return this.blockIndexer.getIndexerTransactionsByAddress(address);
+  }
 }

@@ -8,10 +8,10 @@ import {
 import { BlockIndexer } from './block.indexer';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-
+import { Block } from './block/block.entity';
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.POSTGRES_HOST,
@@ -19,15 +19,14 @@ import { ConfigModule } from '@nestjs/config';
       username: process.env.POSTGRES_USERNAME,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DATABASE,
-      entities: [],
+      entities: [Block],
       synchronize: true, // TypeORM will automatically generate database tables based on the entities
       autoLoadEntities: true,
     }),
+    TypeOrmModule.forFeature([Block]),
   ],
   controllers: [IndexerController],
   providers: [
-    BlockIndexer,
-
     // To keep this assignment simple, we'll provide the JsonBlockchainClient
     // and the path to the 200.json here.
     // In the real world, we'll probably provide an actual blockchain client connector
@@ -37,6 +36,7 @@ import { ConfigModule } from '@nestjs/config';
       provide: JSON_BLOCKS,
       useValue: resolve(join(__dirname, '..', 'test', 'resources', '200.json')),
     },
+    BlockIndexer,
   ],
 })
 export class IndexerModule {}

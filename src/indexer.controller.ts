@@ -1,21 +1,37 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { BlockIndexer } from './block.indexer';
-@Controller('blocks')
+@Controller('')
 export class IndexerController {
   constructor(private readonly blockIndexer: BlockIndexer) {}
   /**
    * APIs to expose JsonBlockchainClient methods
    */
-  @Get('/count')
+  @Get('client/blocks/count')
   async getTotalBlocks(): Promise<any> {
     return this.blockIndexer.getBlockCount();
   }
-  @Get('')
+  @Get('client/blocks/height')
   async getBlocksAtHeight(@Query('height') height: string): Promise<any> {
     return this.blockIndexer.getBlocksAtHeight(height);
   }
-  @Get('')
+  @Get('client/blocks/hash')
   async getBlockByHash(@Query('hash') hash: string): Promise<any> {
     return this.blockIndexer.getBlockByHash(hash);
+  }
+
+  @Get('api/blocks/count')
+  async getIndexerTotalBlocks(): Promise<any> {
+    return this.blockIndexer.getIndexerBlockCount();
+  }
+
+  // TODO @shawbin: assert query param to number
+  @Get('/api/blocks')
+  async getIndexerBlocks(@Query('maxHeight') maxHeight: string): Promise<any> {
+    return this.blockIndexer.getIndexerBlocks(maxHeight);
+  }
+
+  @Get('/api/block/height')
+  async getIndexerBlockByHeight(@Query('height') height: string): Promise<any> {
+    return this.blockIndexer.getIndexerBlockByHeight(height);
   }
 }

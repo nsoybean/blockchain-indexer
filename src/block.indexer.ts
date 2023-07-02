@@ -127,7 +127,8 @@ export class BlockIndexer implements OnApplicationBootstrap {
         // peek
         console.log(`🚀 indexed block(s) at height: ${block.height}`);
 
-        // persist current block entity (at height: h)
+        // indexing blocks
+        // current block entity (at height: h)
         const newBlockEntity: IBlock = {
           hash: block.hash,
           height: block.height,
@@ -161,12 +162,28 @@ export class BlockIndexer implements OnApplicationBootstrap {
         for (const txn of block.tx) {
           const txnHash = txn.hash;
 
+          // indexing block transactions
           const newTxnEntity: IBlockTransaction = {
             block_hash: blockHash,
             txn_hash: txnHash,
             data: txn,
           };
           this.blockTxnRepository.upsert(newTxnEntity, ['txn_hash']);
+
+          // indexing address transactions
+          if (txn.vout && txn.vout.length > 0)
+            for (const tVout of txn.vout) {
+              if (tVout.scriptPubKey.addresses) {
+                const address = tVout.scriptPubKey.addresses;
+                const newAddressTxnEntity: IAddressTransaction = {
+                  txn_hash: txnHash,
+                  address: address[0],
+                };
+                this.addressTxnRepository.upsert(newAddressTxnEntity, [
+                  'txn_hash',
+                ]);
+              }
+            }
         }
 
         // uncomment to limit number of indexin

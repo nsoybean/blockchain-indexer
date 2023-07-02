@@ -9,6 +9,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Block, IBlock } from './block/block.entity';
+import {
+  BlockTransaction,
+  IBlockTransaction,
+} from './blockTransaction/blockTransaction.entity';
 import { ConfigService } from '@nestjs/config';
 
 /**
@@ -24,6 +28,8 @@ export class BlockIndexer implements OnApplicationBootstrap {
     private readonly blockchainClient: JsonBlockchainClient,
     @InjectRepository(Block)
     private blockRepository: Repository<Block>,
+    @InjectRepository(BlockTransaction)
+    private blockTxnRepository: Repository<BlockTransaction>,
     private configService: ConfigService,
   ) {}
 
@@ -94,7 +100,7 @@ export class BlockIndexer implements OnApplicationBootstrap {
     }
     const blockPromises = await Promise.all(allPromises);
 
-    // loop over each block and persist in db
+    // loop over each block and index block
     for (const blockPromise of blockPromises) {
       for (const block of blockPromise) {
         // peek
@@ -119,10 +125,23 @@ export class BlockIndexer implements OnApplicationBootstrap {
           this.blockRepository.upsert(prevBlockEntity, ['hash']);
         }
 
+        // loop over each block's transaction and index transactions
+        const blockHash = block.hash;
+        for (const txn of block.tx) {
+          const txnHash = txn.hash;
+
+          const newTxnEntity: IBlockTransaction = {
+            block_hash: blockHash,
+            txn_hash: txnHash,
+            data: txn,
+          };
+          this.blockTxnRepository.upsert(newTxnEntity, ['txn_hash']);
+        }
+
         // uncomment to limit number of indexin
-        // if (block.height === 10) {
-        //   return;
-        // }
+        if (block.height === 10) {
+          return;
+        }
       }
     }
   }
@@ -152,6 +171,7 @@ export class BlockIndexer implements OnApplicationBootstrap {
       .createQueryBuilder()
       .select('block.data') // col
       .from(Block, 'block') // table (alias)
+      .orderBy('block.time', 'DESC')
       .getMany();
 
     if (queryResults.length > 0) {
@@ -168,7 +188,7 @@ export class BlockIndexer implements OnApplicationBootstrap {
       .select('block.data') // col
       .from(Block, 'block') // table (alias)
       .where(
-        'block.height = :height and block.verified_prev_block_of is not null',
+        'block.height = :height and block.verified_prev_block_of is not null', // returns only the block that is part of canonical chain
         { height: height },
       )
       .getOne();

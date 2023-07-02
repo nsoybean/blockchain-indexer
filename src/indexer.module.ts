@@ -9,6 +9,7 @@ import { BlockIndexer } from './block.indexer';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { Block } from './block/block.entity';
+import { BlockTransaction } from './blockTransaction/blockTransaction.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -19,11 +20,11 @@ import { Block } from './block/block.entity';
       username: process.env.POSTGRES_USERNAME,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DATABASE,
-      entities: [Block],
+      entities: [Block, BlockTransaction],
       synchronize: true, // TypeORM will automatically generate database tables based on the entities
       autoLoadEntities: true,
     }),
-    TypeOrmModule.forFeature([Block]),
+    TypeOrmModule.forFeature([Block, BlockTransaction]),
   ],
   controllers: [IndexerController],
   providers: [

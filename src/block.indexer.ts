@@ -67,14 +67,17 @@ export class BlockIndexer implements OnApplicationBootstrap {
 
   async getIndexerBlocks(maxHeight: string): Promise<any> {
     if (maxHeight) {
+      if (isNaN(Number(maxHeight))) {
+        throw new BadRequestException();
+      }
       return this.findAllByMaxHeight(Number(maxHeight));
-    } else {
-      return this.findAll();
     }
+
+    return this.findAll();
   }
 
   async getIndexerBlockByHeight(height: string): Promise<any> {
-    if (!height) {
+    if (!height || isNaN(Number(height))) {
       throw new BadRequestException();
     }
 
@@ -87,6 +90,14 @@ export class BlockIndexer implements OnApplicationBootstrap {
     }
 
     return this.findBlockByHash(hash);
+  }
+
+  async getIndexerTransactionsByBlockHeight(height: string): Promise<any> {
+    if (!height || isNaN(Number(height))) {
+      throw new BadRequestException();
+    }
+
+    return this.findTransactionsByBlockHeight(Number(height));
   }
 
   // main indexing method
@@ -116,23 +127,33 @@ export class BlockIndexer implements OnApplicationBootstrap {
         // peek
         console.log(`🚀 indexed block(s) at height: ${block.height}`);
 
-        // persist current block entity
+        // persist current block entity (at height: h)
         const newBlockEntity: IBlock = {
           hash: block.hash,
           height: block.height,
           data: block,
+          next_block_hash: block.nextblockhash,
           time: new Date(block.time * 1000).toISOString(), // convert unix in seconds to db timestamp
         };
 
         this.blockRepository.upsert(newBlockEntity, ['hash']);
 
-        // update 'sucessor' of prev block hash
+        // update blocks (at height: h-1) to default 'verfied: false'
+        // then, update prevblock of current block to 'verfied: true'. This determines the block in the canonical chain.
         if (block.previousblockhash) {
-          const prevBlockEntity = {
-            hash: block.previousblockhash,
-            verified_prev_block_of: block.hash,
-          };
-          this.blockRepository.upsert(prevBlockEntity, ['hash']);
+          this.blockRepository
+            .createQueryBuilder()
+            .update(Block)
+            .set({ verified: false })
+            .where('block.height = :height', { height: block.height - 1 })
+            .execute()
+            .then(() => {
+              const prevBlockEntity = {
+                hash: block.previousblockhash,
+                verified: true,
+              };
+              this.blockRepository.upsert(prevBlockEntity, ['hash']);
+            });
         }
 
         // loop over each block's transaction and index transactions
@@ -149,9 +170,9 @@ export class BlockIndexer implements OnApplicationBootstrap {
         }
 
         // uncomment to limit number of indexin
-        if (block.height === 10) {
-          return;
-        }
+        // if (block.height === 10) {
+        //   return;
+        // }
       }
     }
   }
@@ -198,7 +219,7 @@ export class BlockIndexer implements OnApplicationBootstrap {
       .select('block.data') // col
       .from(Block, 'block') // table (alias)
       .where(
-        'block.height = :height and block.verified_prev_block_of is not null', // returns only the block that is part of canonical chain
+        'block.height = :height and block.verified is not false', // returns only the block that is part of canonical chain (up to this point)
         { height: height },
       )
       .getOne();
@@ -225,6 +246,16 @@ export class BlockIndexer implements OnApplicationBootstrap {
       return queryResults.data;
     } else {
       throw new NotFoundException();
+    }
+  }
+
+  async findTransactionsByBlockHeight(height: number): Promise<any> {
+    const blockData = await this.findBlockByHeight(height);
+
+    if (blockData.tx) {
+      return blockData.tx;
+    } else {
+      throw new NotFoundException(`txn not found in block at height ${height}`);
     }
   }
 }

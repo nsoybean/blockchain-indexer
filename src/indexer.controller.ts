@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, Param } from '@nestjs/common';
 import { BlockIndexer } from './block.indexer';
 @Controller('')
 export class IndexerController {
@@ -38,5 +38,12 @@ export class IndexerController {
   @Get('/api/block/hash')
   async getIndexerBlockByHash(@Query('hash') hash: string): Promise<any> {
     return this.blockIndexer.getIndexerBlockByHash(hash);
+  }
+
+  @Get('/api/blocks/:height/transactions')
+  async getIndexerTransactionsByBlockHeight(
+    @Param('height') height: string,
+  ): Promise<any> {
+    return this.blockIndexer.getIndexerTransactionsByBlockHeight(height);
   }
 }

@@ -15,7 +15,10 @@ export class Block {
   hash: string;
 
   @Column({ nullable: true })
-  verified_prev_block_of: string;
+  next_block_hash: string;
+
+  @Column({ nullable: true })
+  verified: boolean;
 
   @Column({ nullable: true })
   height: number;
@@ -43,7 +46,8 @@ export class Block {
 
 export interface IBlock {
   hash: string;
-  verified_prev_block_of?: string;
+  next_block_hash?: string;
+  verified?: boolean;
   height?: number;
   data?: { [key: string]: any };
   time?: string;

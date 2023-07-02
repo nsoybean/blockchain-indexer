@@ -4,7 +4,6 @@ import {
   Injectable,
   NotFoundException,
   OnApplicationBootstrap,
-  OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,6 +12,10 @@ import {
   BlockTransaction,
   IBlockTransaction,
 } from './blockTransaction/blockTransaction.entity';
+import {
+  AddressTransaction,
+  IAddressTransaction,
+} from './AddressTransaction/AddressTransaction.entity';
 import { ConfigService } from '@nestjs/config';
 
 /**
@@ -26,11 +29,18 @@ export class BlockIndexer implements OnApplicationBootstrap {
 
   constructor(
     private readonly blockchainClient: JsonBlockchainClient,
+    private configService: ConfigService,
+    // block repo
     @InjectRepository(Block)
     private blockRepository: Repository<Block>,
+
+    // block txn repo
     @InjectRepository(BlockTransaction)
     private blockTxnRepository: Repository<BlockTransaction>,
-    private configService: ConfigService,
+
+    // address txn repo
+    @InjectRepository(AddressTransaction)
+    private addressTxnRepository: Repository<AddressTransaction>,
   ) {}
 
   ////////////////////////////////////////////////////

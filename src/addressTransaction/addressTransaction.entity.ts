@@ -4,19 +4,16 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
-  OneToOne,
-  JoinColumn,
   Unique,
 } from 'typeorm';
-import { BlockTransaction } from '../blockTransaction/blockTransaction.entity';
 
 @Entity()
+@Unique('address_txn', ['address', 'txn_hash']) // composite
 export class AddressTransaction {
   @PrimaryGeneratedColumn('uuid')
   id: number;
 
-  @Column({ unique: true })
+  @Column()
   txn_hash: string;
 
   @Column()

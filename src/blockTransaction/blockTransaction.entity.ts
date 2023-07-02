@@ -5,7 +5,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { AddressTransaction } from '../addressTransaction/AddressTransaction.entity';
 @Entity()
 export class BlockTransaction {
   @PrimaryGeneratedColumn('uuid')

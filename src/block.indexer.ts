@@ -199,11 +199,6 @@ export class BlockIndexer implements OnApplicationBootstrap {
               }
             }
         }
-
-        // uncomment to limit number of indexin
-        // if (block.height === 10) {
-        //   return;
-        // }
       }
     }
   }
@@ -291,17 +286,19 @@ export class BlockIndexer implements OnApplicationBootstrap {
   }
 
   async findTransactionsByAddress(address: string): Promise<any> {
-    // const queryResults = await this.addressTxnRepository
-    //   .createQueryBuilder('t')
-    //   .select(['bTxn.data'])
-    //   .leftJoin('t.block_transactions', 'bTxn')
-    //   .where('t.address = :tAddress', { tAddress: address })
-    //   .getMany();
+    // TODO @shawbin: implement model rs with ORM else risk sql injection
+    const queryResults = await this.addressTxnRepository.query(`
+          select * from address_transaction
+          left join block_transaction
+          on address_transaction.txn_hash = block_transaction.txn_hash
+          where address_transaction.address = '${address}'
+      `);
 
-    // console.log(
-    //   '🚀 ~ file: block.indexer.ts:296 ~ BlockIndexer ~ findTransactionsByAddress ~ queryResults:',
-    //   queryResults[0],
-    // );
-    return true;
+    if (queryResults.length > 0) {
+      const arrayResults = queryResults.map((r) => r.data);
+      return arrayResults;
+    } else {
+      throw new NotFoundException();
+    }
   }
 }

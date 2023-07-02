@@ -34,4 +34,9 @@ export class IndexerController {
   async getIndexerBlockByHeight(@Query('height') height: string): Promise<any> {
     return this.blockIndexer.getIndexerBlockByHeight(height);
   }
+
+  @Get('/api/block/hash')
+  async getIndexerBlockByHash(@Query('hash') hash: string): Promise<any> {
+    return this.blockIndexer.getIndexerBlockByHash(hash);
+  }
 }

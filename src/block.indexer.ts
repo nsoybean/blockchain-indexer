@@ -2,6 +2,7 @@ import { JsonBlockchainClient } from './providers/blockchain/JsonBlockchainClien
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   OnApplicationBootstrap,
   OnModuleInit,
 } from '@nestjs/common';
@@ -64,6 +65,14 @@ export class BlockIndexer implements OnApplicationBootstrap {
     return this.findBlockByHeight(Number(height));
   }
 
+  async getIndexerBlockByHash(hash: string): Promise<any> {
+    if (!hash) {
+      throw new BadRequestException();
+    }
+
+    return this.findBlockByHash(hash);
+  }
+
   // main indexing method
   // loads block data in memory and save to database
   async onApplicationBootstrap(): Promise<void> {
@@ -86,9 +95,8 @@ export class BlockIndexer implements OnApplicationBootstrap {
     const blockPromises = await Promise.all(allPromises);
 
     // loop over each block and persist in db
-    for (let i = 0; i < blockPromises.length; i++) {
-      for (let j = 0; j < blockPromises[i].length; j++) {
-        const block = blockPromises[i][j];
+    for (const blockPromise of blockPromises) {
+      for (const block of blockPromise) {
         // peek
         console.log(`🚀 indexed block(s) at height: ${block.height}`);
 
@@ -100,7 +108,6 @@ export class BlockIndexer implements OnApplicationBootstrap {
           time: new Date(block.time * 1000).toISOString(), // convert unix in seconds to db timestamp
         };
 
-        // const newblockEntity = this.blockRepository.create(newBlockEntity);
         this.blockRepository.upsert(newBlockEntity, ['hash']);
 
         // update 'sucessor' of prev block hash
@@ -132,9 +139,12 @@ export class BlockIndexer implements OnApplicationBootstrap {
       .where('block.height <= :height', { height: Number(maxHeight) })
       .getMany();
 
-    const arrayResults = queryResults.map((r) => r.data);
-
-    return arrayResults;
+    if (queryResults.length > 0) {
+      const arrayResults = queryResults.map((r) => r.data);
+      return arrayResults;
+    } else {
+      throw new NotFoundException();
+    }
   }
 
   async findAll(): Promise<any> {
@@ -144,9 +154,12 @@ export class BlockIndexer implements OnApplicationBootstrap {
       .from(Block, 'block') // table (alias)
       .getMany();
 
-    const arrayResults = queryResults.map((r) => r.data);
-
-    return arrayResults;
+    if (queryResults.length > 0) {
+      const arrayResults = queryResults.map((r) => r.data);
+      return arrayResults;
+    } else {
+      throw new NotFoundException();
+    }
   }
 
   async findBlockByHeight(height: number): Promise<any> {
@@ -158,10 +171,30 @@ export class BlockIndexer implements OnApplicationBootstrap {
         'block.height = :height and block.verified_prev_block_of is not null',
         { height: height },
       )
-      .getMany();
+      .getOne();
 
-    const arrayResults = queryResults.map((r) => r.data);
+    if (queryResults) {
+      return queryResults.data;
+    } else {
+      throw new NotFoundException();
+    }
+  }
 
-    return arrayResults;
+  async findBlockByHash(hash: string): Promise<any> {
+    const queryResults = await this.blockRepository
+      .createQueryBuilder()
+      .select('block.data') // col
+      .from(Block, 'block') // table (alias)
+      .where(
+        'block.hash = :hash and block.verified_prev_block_of is not null',
+        { hash: hash },
+      )
+      .getOne();
+
+    if (queryResults) {
+      return queryResults.data;
+    } else {
+      throw new NotFoundException();
+    }
   }
 }

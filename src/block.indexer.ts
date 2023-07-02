@@ -108,9 +108,108 @@ export class BlockIndexer implements OnApplicationBootstrap {
     return this.findTransactionsByAddress(address);
   }
 
+  async countBlocks(): Promise<number> {
+    return this.blockRepository.count();
+  }
+
+  async findAllByMaxHeight(maxHeight: number): Promise<any> {
+    const queryResults = await this.blockRepository
+      .createQueryBuilder()
+      .select('block.data') // col
+      .from(Block, 'block') // table (alias)
+      .where('block.height <= :height', { height: Number(maxHeight) })
+      .getMany();
+
+    if (queryResults.length > 0) {
+      const arrayResults = queryResults.map((r) => r.data);
+      return arrayResults;
+    } else {
+      throw new NotFoundException();
+    }
+  }
+
+  async findAll(): Promise<any> {
+    const queryResults = await this.blockRepository
+      .createQueryBuilder()
+      .select('block.data')
+      .from(Block, 'block')
+      .orderBy('block.time', 'DESC')
+      .getMany();
+
+    if (queryResults.length > 0) {
+      const arrayResults = queryResults.map((r) => r.data);
+      return arrayResults;
+    } else {
+      throw new NotFoundException();
+    }
+  }
+
+  async findBlockByHeight(height: number): Promise<any> {
+    const queryResults = await this.blockRepository
+      .createQueryBuilder()
+      .select('block.data')
+      .from(Block, 'block')
+      .where(
+        'block.height = :height and block.verified is not false', // returns only the block that is part of canonical chain (note: last block fits this criteria too)
+        { height: height },
+      )
+      .getOne();
+
+    if (queryResults) {
+      return queryResults.data;
+    } else {
+      throw new NotFoundException();
+    }
+  }
+
+  async findBlockByHash(hash: string): Promise<any> {
+    const queryResults = await this.blockRepository
+      .createQueryBuilder()
+      .select('block.data')
+      .from(Block, 'block')
+      .where(
+        'block.hash = :hash and block.verified_prev_block_of is not null',
+        { hash: hash },
+      )
+      .getOne();
+
+    if (queryResults) {
+      return queryResults.data;
+    } else {
+      throw new NotFoundException();
+    }
+  }
+
+  async findTransactionsByBlockHeight(height: number): Promise<any> {
+    const blockData = await this.findBlockByHeight(height);
+
+    if (blockData.tx) {
+      return blockData.tx;
+    } else {
+      throw new NotFoundException(`txn not found in block at height ${height}`);
+    }
+  }
+
+  async findTransactionsByAddress(address: string): Promise<any> {
+    // TODO @shawbin: implement model rs with ORM else risk sql injection
+    const queryResults = await this.addressTxnRepository.query(`
+          select address, block_transaction.data from address_transaction
+          left join block_transaction
+          on address_transaction.txn_hash = block_transaction.txn_hash
+          where address_transaction.address = '${address}'
+      `);
+
+    if (queryResults.length > 0) {
+      const arrayResults = queryResults.map((r) => r.data);
+      return arrayResults;
+    } else {
+      throw new NotFoundException();
+    }
+  }
+
   // main indexing method
   // loads block data in memory and save to database
-  async onApplicationBootstrap(): Promise<void> {
+  async onApplicationBootstrap() {
     if (!this.toInitDB) {
       console.log(`[BlockIndexer][onApplicationBootstrap] indexing skipped`);
       return;
@@ -200,105 +299,6 @@ export class BlockIndexer implements OnApplicationBootstrap {
             }
         }
       }
-    }
-  }
-
-  countBlocks(): Promise<number> {
-    return this.blockRepository.count();
-  }
-
-  async findAllByMaxHeight(maxHeight: number): Promise<any> {
-    const queryResults = await this.blockRepository
-      .createQueryBuilder()
-      .select('block.data') // col
-      .from(Block, 'block') // table (alias)
-      .where('block.height <= :height', { height: Number(maxHeight) })
-      .getMany();
-
-    if (queryResults.length > 0) {
-      const arrayResults = queryResults.map((r) => r.data);
-      return arrayResults;
-    } else {
-      throw new NotFoundException();
-    }
-  }
-
-  async findAll(): Promise<any> {
-    const queryResults = await this.blockRepository
-      .createQueryBuilder()
-      .select('block.data') // col
-      .from(Block, 'block') // table (alias)
-      .orderBy('block.time', 'DESC')
-      .getMany();
-
-    if (queryResults.length > 0) {
-      const arrayResults = queryResults.map((r) => r.data);
-      return arrayResults;
-    } else {
-      throw new NotFoundException();
-    }
-  }
-
-  async findBlockByHeight(height: number): Promise<any> {
-    const queryResults = await this.blockRepository
-      .createQueryBuilder()
-      .select('block.data') // col
-      .from(Block, 'block') // table (alias)
-      .where(
-        'block.height = :height and block.verified is not false', // returns only the block that is part of canonical chain (up to this point)
-        { height: height },
-      )
-      .getOne();
-
-    if (queryResults) {
-      return queryResults.data;
-    } else {
-      throw new NotFoundException();
-    }
-  }
-
-  async findBlockByHash(hash: string): Promise<any> {
-    const queryResults = await this.blockRepository
-      .createQueryBuilder()
-      .select('block.data') // col
-      .from(Block, 'block') // table (alias)
-      .where(
-        'block.hash = :hash and block.verified_prev_block_of is not null',
-        { hash: hash },
-      )
-      .getOne();
-
-    if (queryResults) {
-      return queryResults.data;
-    } else {
-      throw new NotFoundException();
-    }
-  }
-
-  async findTransactionsByBlockHeight(height: number): Promise<any> {
-    const blockData = await this.findBlockByHeight(height);
-
-    if (blockData.tx) {
-      return blockData.tx;
-    } else {
-      throw new NotFoundException(`txn not found in block at height ${height}`);
-    }
-  }
-
-  async findTransactionsByAddress(address: string): Promise<any> {
-    // TODO @shawbin: implement model rs with ORM else risk sql injection
-    const queryResults = await this.addressTxnRepository.query(`
-          select * from address_transaction
-          left join block_transaction
-          on address_transaction.txn_hash = block_transaction.txn_hash
-          where address_transaction.address = '${address}'
-      `);
-
-    if (queryResults.length > 0) {
-      const arrayResults = queryResults.map((r) => r.data);
-      return arrayResults;
-    } else {
-      throw new NotFoundException();
     }
   }
 }

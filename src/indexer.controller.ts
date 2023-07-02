@@ -23,6 +23,9 @@ export class IndexerController {
     return this.blockIndexer.getBlockByHash(hash);
   }
 
+  /**
+   * APIs to perform aggregate query
+   */
   @ApiTags('Indexer')
   @Get('api/blocks/count')
   async getIndexerTotalBlocks(): Promise<any> {

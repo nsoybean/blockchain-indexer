@@ -215,11 +215,7 @@ export class BlockIndexer implements OnApplicationBootstrap {
       return;
     }
 
-    console.log(`[BlockIndexer][onApplicationBootstrap] indexing...`);
     const totalBlocks = await this.blockchainClient.getBlockCount();
-    console.log(
-      `[BlockIndexer][onApplicationBootstrap] Total blocks: ${totalBlocks}`,
-    );
 
     // async call to get all blocks in-memory
     const allPromises = [];
@@ -231,9 +227,6 @@ export class BlockIndexer implements OnApplicationBootstrap {
     // loop over each block and index block
     for (const blockPromise of blockPromises) {
       for (const block of blockPromise) {
-        // peek
-        console.log(`🚀 indexed block(s) at height: ${block.height}`);
-
         // indexing blocks
         // current block entity (at height: h)
         const newBlockEntity: IBlock = {

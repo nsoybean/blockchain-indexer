@@ -23,11 +23,7 @@ jobs:
           POSTGRES_DATABASE: 'postgres'
           POSTGRES_HOST: 'localhost'
           POSTGRES_TIMEZONE: 'Asia/Singapore'
-      - name: Run script file
-        with:
-          compose-file: './docker-compose-e2e-test.yml'
-          down-flags: '--volumes'
-          services: api
+      - name: Run test script file
         run: |
           chmod +x ./test/e2e_test.sh
           ./test/e2e_test.sh

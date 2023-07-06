@@ -14,8 +14,9 @@ describe('Indexer e2e', () => {
     app = moduleFixture.createNestApplication(); // instantiate full nest runtime env
     await app.init();
 
-    console.log('🚀 waiting...');
-
+    console.log(
+      '🚀 waiting for fixed 5s for blockchain indexing to complete...',
+    );
     await new Promise((r) => setTimeout(r, 5000));
   });
 

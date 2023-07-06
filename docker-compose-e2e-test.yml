@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  api:
+    container_name: nestapi
+    environment:
+    - POSTGRES_USER:${POSTGRES_USERNAME}
+    - POSTGRES_PASSWORD:${POSTGRES_PASSWORD}
+    - POSTGRES_DATABASE:${POSTGRES_DATABASE}
+    - POSTGRES_HOST:${POSTGRES_HOST}
+    - POSTGRES_TIMEZONE:${POSTGRES_TIMEZONE}
+    - INIT_INDEXER:${INIT_INDEXER}
+    build:
+      context: .
+      target: development
+      dockerfile: ./Dockerfile
+    command: npm run test
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    volumes:
+      - .:/usr/src/app
+    restart: unless-stopped
+  db:
+    image: postgres
+    restart: always
+    environment:
+      - TZ:${POSTGRES_TIMEZONE}
+      - POSTGRES_USER:${POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD:${POSTGRES_PASSWORD}
+      - POSTGRES_DATABASE:${POSTGRES_DATABASE}
+    ports:
+      - '5432:5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+volumes:
+  db:
+    driver: local

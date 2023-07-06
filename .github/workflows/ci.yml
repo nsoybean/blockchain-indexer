@@ -17,12 +17,20 @@ jobs:
           compose-file: './docker-compose-e2e-test.yml'
           down-flags: '--volumes'
           services: db
-          command: test/e2e_test.sh
         env:
-          CUSTOM_VARIABLE: 'test'
           POSTGRES_USERNAME: 'postgres'
           POSTGRES_PASSWORD: 'postgres'
           POSTGRES_DATABASE: 'postgres'
           POSTGRES_HOST: 'localhost'
           POSTGRES_TIMEZONE: 'Asia/Singapore'
+      - name: Run script file
+        run: |
+          chmod +x ./test/e2e_test.sh
+          ./test/e2e_test.sh
+        shell: bash
+        env:
+          POSTGRES_USERNAME: 'postgres'
+          POSTGRES_PASSWORD: 'postgres'
+          POSTGRES_DATABASE: 'postgres'
+          POSTGRES_HOST: 'localhost'
           INIT_INDEXER: true

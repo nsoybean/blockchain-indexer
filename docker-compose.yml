@@ -24,8 +24,6 @@ services:
       - .:/usr/src/app
     restart: unless-stopped
   db:
-    env_file:
-      - .env
     image: postgres
     restart: always
     environment:

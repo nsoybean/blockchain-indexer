@@ -3,16 +3,32 @@ name: CI
 on:
   push:
   pull_request:
+    branches:
+      - 'main'
 
 jobs:
-  Build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
-      # TODO automate building
-
   Test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
-      # TODO automate testing
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: isbang/compose-action@v1.4.1
+        with:
+          compose-file: './docker-compose.yml'
+          down-flags: '--volumes'
+          services: |
+            db
+        env:
+          CUSTOM_VARIABLE: 'test'
+          POSTGRES_USERNAME: 'postgres'
+          POSTGRES_PASSWORD: 'postgres'
+          POSTGRES_DATABASE: 'postgres'
+          POSTGRES_HOST: 'localhost'
+          POSTGRES_TIMEZONE: 'Asia/Singapore'
+          INIT_INDEXER: true
+
+  # Test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+  # TODO automate testing

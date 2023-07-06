@@ -128,7 +128,7 @@ Note: Setting `INIT_INDEXER` to true will enable the blockchain indexer to load 
 	POSTGRES_USERNAME="postgres"
 	POSTGRES_PASSWORD="postgres"
 	POSTGRES_DATABASE="postgres"
-	POSTGRES_HOST="localhost"
+	POSTGRES_HOST="db"
 	POSTGRES_TIMEZONE="Asia/Singapore"
 	INIT_INDEXER=true
 	```
@@ -144,11 +144,15 @@ Wait for all container to run. Once the logs are seen, head to swagger (`localho
 | localhost:8080/ | database management tool | use the credentials configured in your env file |
 
 ### Running the test
-1. Run only the DB
+1. Run only the DB svc
 	```
 	docker-compose up db
 	```
 2. Run e2e test
 	```
+ 	// change postgress host to 'localhost' in .env file
+ 	POSTGRES_HOST="db"
+
+ 	// run script
 	npm run test
 	```

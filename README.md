@@ -57,8 +57,6 @@ erDiagram  Block  }|--|{  Transactions  :  has  Block
 This section aims to capture implementation details at a high-level.
 ##### Indexes
 ##### Canonical Chain
-![enter image description heredsd](https://www.researchgate.net/publication/356286668/figure/fig1/AS:1111989438939137@1642130350989/Block-structure-We-show-transactions-with-squares-within-blocks-The-canonical.png)
-
 > The canonical blockchain is **the main chain that contains blocks and continues to grow in time**.
 
 Each block can potentially point to a next block. However, during the processing interval of that current block, it is unknown if it is part of the main chain. A block can only be part of the main chain, if the next (successor) block also refers the current block as its previous (predecessor) block. 
@@ -138,7 +136,8 @@ Note: Setting `INIT_INDEXER` to true will enable the blockchain indexer to load 
 	```
 	docker-compose up
 	```
-Wait for all container to run. Once the following logs are seen, head to swagger (`localhost:3000/api`) to play with the APIs 💥
+ ![image info](./doc/app_logs.png)
+Wait for all container to run. Once the logs are seen, head to swagger (`localhost:3000/api`) to play with the APIs 💥
 | host:port/path | resource | description |
 |  :------------------  |  :------  |  :----  |
 | localhost:3000/api | api swagger doc | primitive/ aggregate endpoints can be tested here |

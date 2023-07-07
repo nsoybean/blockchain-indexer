@@ -144,12 +144,12 @@ Wait for all container to run. Once the logs are seen, head to swagger (`localho
 | localhost:8080/ | database management tool | use the credentials configured in your env file |
 
 ### Running the test
+![image info](./doc/e2e_test.png)
 1. Run only the DB svc
 	```
 	docker-compose up db
 	```
 2. Run e2e test
-   ![image info](./doc/e2e_test.png)
 	```
  	// change postgress host to 'localhost' in .env file
 	POSTGRES_HOST="localhost"

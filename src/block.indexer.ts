@@ -167,10 +167,7 @@ export class BlockIndexer implements OnApplicationBootstrap {
       .createQueryBuilder()
       .select('block.data')
       .from(Block, 'block')
-      .where(
-        'block.hash = :hash and block.verified_prev_block_of is not null',
-        { hash: hash },
-      )
+      .where('block.hash = :hash', { hash: hash })
       .getOne();
 
     if (queryResults) {

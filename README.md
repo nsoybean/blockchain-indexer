@@ -151,7 +151,7 @@ Wait for all container to run. Once the logs are seen, head to swagger (`localho
 2. Run e2e test
 	```
  	// change postgress host to 'localhost' in .env file
- 	POSTGRES_HOST="db"
+	POSTGRES_HOST="localhost"
 
  	// run script
 	npm run test

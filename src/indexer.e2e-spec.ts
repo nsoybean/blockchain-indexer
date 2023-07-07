@@ -4,6 +4,9 @@ import * as request from 'supertest';
 import { IndexerModule } from './indexer.module';
 let app: INestApplication;
 import * as e2e_001_data from '../test/resources/e2e_001.json';
+import * as e2e_002_data from '../test/resources/e2e_002.json';
+import * as e2e_003_data from '../test/resources/e2e_003.json';
+import * as e2e_004_data from '../test/resources/e2e_004.json';
 
 describe('Indexer e2e', () => {
   beforeAll(async () => {
@@ -27,14 +30,18 @@ describe('Indexer e2e', () => {
       .expect('201');
   });
 
-  it('should get two specific block. testID: e2e_001', () => {
-    return request(app.getHttpServer())
-      .get('/api/blocks?maxHeight=2')
-      .expect(200)
-      .expect(e2e_001_data);
+  it('should get two specific block. testID: e2e_001', async () => {
+    const response = await request(app.getHttpServer()).get(
+      '/api/blocks?maxHeight=1',
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
+    expect(response.body).toContainEqual(e2e_001_data[0]);
+    expect(response.body).toContainEqual(e2e_001_data[1]);
   });
 
-  it("should get 'FORKEDBLOCK' block at height 198. testID: e2e_002", async () => {
+  it("should get 1 block of hash:'FORKEDBLOCK' at height 198", async () => {
     const response = await request(app.getHttpServer()).get(
       '/api/block/height?height=198',
     );
@@ -42,6 +49,44 @@ describe('Indexer e2e', () => {
       'hash',
       'ef61aaf7f6f742ed825922b10ec504ee74cfcb9c71037706dd8a8FORKEDBLOCK',
     );
+  });
+
+  it('should get status 404 when height exceeded max height', async () => {
+    const response = await request(app.getHttpServer()).get(
+      '/api/block/height?height=200',
+    );
+    expect(response.status).toBe(404);
+  });
+
+  it('should get specfic block by hash. testID: e2e_002 ', async () => {
+    const blockHash =
+      'd744db74fb70ed42767ae028a129365fb4d7de54ba1b6575fb047490554f8a7b';
+    const response = await request(app.getHttpServer()).get(
+      `/api/block/hash?hash=${blockHash}`,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(e2e_002_data);
+  });
+
+  it('get all transactions of a block at specific height. testID: e2e_003 ', async () => {
+    const height = 1;
+    const response = await request(app.getHttpServer()).get(
+      `/api/blocks/${height}/transactions`,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(e2e_003_data);
+  });
+
+  it('get all transactions of a specific address. testID: e2e_003 ', async () => {
+    const address = 'msER9bmJjyEemRpQoS8YYVL21VyZZrSgQ7';
+    const response = await request(app.getHttpServer()).get(
+      `/api/addresses/${address}/transactions`,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(e2e_004_data);
   });
 
   afterAll(async () => {

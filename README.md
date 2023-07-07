@@ -1,5 +1,8 @@
 # Blockchain Indexer
-
+Scope of project:
+- [x] Indexing functionality
+- [x] E2E Test
+- [ ] CICD Pipeline (Github actions)
 
 
 ## Problem
